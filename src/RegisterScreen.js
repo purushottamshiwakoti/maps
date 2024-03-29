@@ -9,8 +9,11 @@ import { Button, Text, TextInput } from "react-native-paper"; // Import TextInpu
 import Toast from "react-native-toast-message";
 import { Colors } from "./colors";
 import { registerSchema } from "../schemas";
+import useAuthStore from "./hooks/useAuth,";
+import { apiUrl } from "./lib/url";
 
 const RegisterScreen = ({ navigation }) => {
+  const { setUserName, setId } = useAuthStore();
   const { control, handleSubmit } = useForm({
     defaultValues: {
       email: "",
@@ -34,8 +37,11 @@ const RegisterScreen = ({ navigation }) => {
       });
 
       console.log("Signup successful:", res.data);
-      const { message, token } = res.data;
-      await AsyncStorage.setItem("token", token);
+      const { message, user } = res.data;
+      console.log(message, user);
+      setId(user.id);
+      setUserName(user.name);
+
       Toast.show({
         type: "success",
         text1: message,
@@ -45,8 +51,10 @@ const RegisterScreen = ({ navigation }) => {
 
       // Handle success response here
     } catch (error) {
-      console.error("Signup failed:");
+      console.log(error);
+      alert("Soething went wrong");
       const { message } = error.response.data;
+      alert(message);
       Toast.show({
         type: "error",
         text1: message,

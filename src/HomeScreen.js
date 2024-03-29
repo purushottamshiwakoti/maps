@@ -5,9 +5,12 @@ import * as Location from "expo-location";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { buses } from "./data/bus";
+import axios from "axios";
+import { apiUrl } from "./lib/url";
 
 export default function Home() {
   const [location, setLocation] = useState(null);
+  const [data, setData] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,37 +26,22 @@ export default function Home() {
         setLoading(true);
         const { coords } = await Location.getCurrentPositionAsync({});
         setLocation(coords);
-        calculateBusStops();
       } catch (error) {
         console.error("Error fetching location:", error.message);
       } finally {
         setLoading(false);
       }
     })();
+    fetchData();
   }, []);
-
-  // Function to calculate bus stops
-  const calculateBusStops = () => {
-    let newBusStops = [];
-
+  const fetchData = async () => {
     try {
-      buses.forEach((bus) => {
-        bus.places.forEach((place) => {
-          place.coordinates.forEach((coordinate) => {
-            newBusStops.push({
-              latitude: parseFloat(coordinate.latitude),
-              longitude: parseFloat(coordinate.longitude),
-              name: place.name,
-              waitingTime: place.waitingTime,
-              color: place.color,
-              station: coordinate.name,
-            });
-          });
-        });
-      });
-      setBusStops(newBusStops);
+      const res = await axios.get(`${apiUrl}/health-posts`);
+      console.log("API Response:", res.data);
+      const { hp } = res.data;
+      setData(hp);
     } catch (error) {
-      console.error("Error calculating bus stops:", error.message);
+      console.log("Error fetching data:", error);
     }
   };
 
@@ -82,23 +70,27 @@ export default function Home() {
                   }}
                   title="Your Location"
                 />
-                {busStops.map((busStop, index) => {
-                  return (
-                    <Marker
-                      key={index}
-                      coordinate={busStop}
-                      // title={`Name:${busStop.name} Stop${index + 1}`}
-                      title={`Name:${busStop.station} `}
-                      description={`Waiting time:${busStop.waitingTime}`}
-                    >
-                      <MaterialCommunityIcons
-                        name="bus"
-                        size={24}
-                        color={busStop.color}
-                      />
-                    </Marker>
-                  );
-                })}
+                {data &&
+                  data.map((busStop, index) => {
+                    console.log(parseFloat(busStop.latitude));
+                    return (
+                      <Marker
+                        key={index}
+                        coordinate={{
+                          latitude: parseFloat(busStop.latitude),
+                          longitude: parseFloat(busStop.longitude),
+                        }}
+                        title={`Name: ${busStop.name}`}
+                        // description={`Waiting time: ${busStop.waitingTime}`}
+                      >
+                        <MaterialCommunityIcons
+                          name="hospital"
+                          size={24}
+                          color={"red"}
+                        />
+                      </Marker>
+                    );
+                  })}
               </MapView>
             )
           )}

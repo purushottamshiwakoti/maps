@@ -7,6 +7,7 @@ import BusScreen from "./src/BusScreen";
 import LogoutScreen from "./src/LogoutScreen";
 import RegisterScreen from "./src/RegisterScreen";
 import LoginScreen from "./src/LoginScreen";
+import HospitalDetial from "./src/HospitalDetial";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -15,11 +16,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="Login"
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Detail" component={HospitalDetial} />
         <Stack.Screen name="Home" component={DrawerNav} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -29,8 +31,8 @@ export default function App() {
 const DrawerNav = () => {
   return (
     <Drawer.Navigator initialRouteName="Stops">
-      <Drawer.Screen name="Stops" component={HomeScreen} />
-      <Drawer.Screen name="Buses" component={BusScreen} />
+      <Drawer.Screen name="Home" component={HomeScreen} />
+      <Drawer.Screen name="Hospitals" component={BusScreen} />
       <Drawer.Screen name="Logout" component={LogoutScreen} />
     </Drawer.Navigator>
   );

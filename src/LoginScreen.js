@@ -4,33 +4,18 @@ import { Text, TextInput, Button } from "react-native-paper"; // Import TextInpu
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Toast from "react-native-toast-message";
 import axios from "axios";
 import { Colors } from "./colors";
 import { loginSchema } from "../schemas";
 import { apiUrl } from "./lib/url";
+import useAuthStore from "./hooks/useAuth,";
 
 const LoginScreen = ({ navigation }) => {
   const [isLoading, setLoading] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
-  useEffect(() => {
-    const verifyToken = async () => {
-      const token = await AsyncStorage.getItem("token");
-      console.log(token);
-      if (token) {
-        setIsAuth(true);
-      }
-    };
-    verifyToken();
-  }, []);
-
-  console.log(isAuth);
-
-  if (isAuth) {
-    navigation.navigate("Home");
-  }
+  const { setUserName, setId } = useAuthStore();
 
   const { control, handleSubmit } = useForm({
     defaultValues: {
@@ -51,8 +36,10 @@ const LoginScreen = ({ navigation }) => {
         password: password,
       });
 
-      const { message, token } = res.data;
-      await AsyncStorage.setItem("token", token);
+      const { message, user } = res.data;
+      setId(user.id);
+      setUserName(user.name);
+
       Toast.show({
         type: "success",
         text1: message,

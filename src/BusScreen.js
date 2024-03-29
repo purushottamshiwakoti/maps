@@ -1,9 +1,12 @@
 import { View, Linking, ScrollView } from "react-native"; // Import ScrollView
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Avatar, Button, Card, Text } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modal, Portal, Provider as PaperProvider } from "react-native-paper"; // Rename Portal to Provider
 import { buses } from "./data/bus"; // Import buses data
+import axios from "axios";
+import { apiUrl } from "./lib/url";
+import { useNavigation } from "@react-navigation/native";
 
 const images = [
   "https://shppasang.files.wordpress.com/2014/03/71555_528653800566443_1388079766_n1.jpg",
@@ -13,8 +16,25 @@ const images = [
 ];
 
 const BusScreen = () => {
+  const navigation = useNavigation();
   const [visible, setVisible] = React.useState(false);
-  const [selectedBus, setSelectedBus] = React.useState(null); // State to store the selected bus
+  const [selectedBus, setSelectedBus] = React.useState(null);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(`${apiUrl}/health-posts`);
+      console.log("API Response:", res.data);
+      const { hp } = res.data;
+      setData(hp);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    }
+  };
 
   const showModal = (bus) => {
     console.log(bus);
@@ -39,9 +59,9 @@ const BusScreen = () => {
   return (
     <PaperProvider>
       <ScrollView>
-        {buses.map((bus, index) => (
-          <View key={index}>
-            {bus.places.map((item, innerIndex) => (
+        <View>
+          {data &&
+            data.map((item, innerIndex) => (
               <View
                 style={{ marginTop: 10, marginHorizontal: 10 }}
                 key={innerIndex}
@@ -49,7 +69,7 @@ const BusScreen = () => {
                 <Card>
                   <Card.Cover
                     source={{
-                      uri: images[innerIndex],
+                      uri: item.image,
                     }}
                   />
                   <Card.Content style={{ marginTop: 10 }}>
@@ -57,32 +77,32 @@ const BusScreen = () => {
                     <View
                       style={{ flexDirection: "row", alignItems: "center" }}
                     >
-                      {Array.from(
-                        { length: Math.floor(bus.rating) },
-                        (_, index) => (
-                          <MaterialCommunityIcons
-                            key={index}
-                            name="star"
-                            size={24}
-                            color="purple"
-                            style={{ marginRight: 5 }}
-                          />
-                        )
-                      )}
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <MaterialCommunityIcons
+                          key={index}
+                          name="star"
+                          size={24}
+                          color="purple"
+                          style={{ marginRight: 5 }}
+                        />
+                      ))}
                     </View>
 
                     {/* <Text>Total Stops: {bus.places.length}</Text> */}
                   </Card.Content>
                   <Card.Actions>
-                    <Button onPress={() => showModal(index)}>
+                    <Button
+                      onPress={() =>
+                        navigation.navigate("Detail", { id: item.id })
+                      }
+                    >
                       View Details
                     </Button>
                   </Card.Actions>
                 </Card>
               </View>
             ))}
-          </View>
-        ))}
+        </View>
       </ScrollView>
       <Portal>
         <Modal
